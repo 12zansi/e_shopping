@@ -16,4 +16,3 @@ class ProductImage(BaseModel):
 
 class ProductDetail(BaseModel):
     detail: dict
-    product_id: int

@@ -1,8 +1,8 @@
-from typing import Optional,Union
-from fastapi import FastAPI, Path
+from typing import Optional
+from fastapi import FastAPI, UploadFile,Form, File
 from back_end.Models.brand import Brand
 from back_end.Models.category import Category
-from back_end.Models.login import Login
+from back_end.Models.login import ForgotPassword, Login
 from back_end.Models.product import Product, ProductDetail
 from back_end.Models.product_return import ProductReturn
 
@@ -54,43 +54,48 @@ def add_product(product:Product):
     return { "success": True }
 
 @app.put('/api/admin/products/{id}', tags = ['admin'])
-def update_product(id:int):
+def update_product(id:int, product:Product):
     return { "success": True }
 
-@app.post('/api/admin/product/images', tags = ['admin'])
-def add_images():
+@app.post('/api/admin/products/{id}/images', tags = ['admin'])
+def add_images( id: int,file1: list[UploadFile] = File(...)):
     return { "success": True }
 
-@app.put('/api/admin/product/images', tags = ['admin'])
-def update_images():
+
+@app.put('/api/admin/products/images/{id}', tags = ['admin'])
+def update_product_images(id:int,file1: UploadFile = File(...)):
     return { "success": True }
 
-@app.post('/api/admin/product/detail', tags = ['admin'])
-def add_detail(detail:ProductDetail):
+@app.get('/api/admin/product/{id}/images', tags = ['admin'])
+def view_product_images(id:int):
     return { "success": True }
 
-@app.put('/api/admin/product/detail', tags = ['admin'])
-def update_detail():
+@app.post('/api/admin/products/{id}/detail', tags = ['admin'])
+def add_detail(id:int, detail:ProductDetail):
     return { "success": True }
 
-@app.get('/api/admin/product/detail', tags = ['admin'])
-def view_product_detail():
+@app.put('/api/admin/products/detail/{id}', tags = ['admin'])
+def update_product_detail(id:int,detail:ProductDetail):
+    return { "success": True }
+
+@app.get('/api/admin/product/{id}/detail', tags = ['admin'])
+def view_product_detail(id:int):
     return { "success": True }
 
 @app.get('/api/admin/orders', tags = ['admin'])
 def view_orders():
     return { "success": True }
 
-@app.post('/api/admin/orders/status', tags = ['admin'])
-def change_order_status():
+@app.post('/api/admin/orders/{id}/status', tags = ['admin'])
+def change_order_status(id:int):
     return { "success": True }
 
-@app.get('/api/admin/product/return', tags = ['admin'])
+@app.get('/api/admin/product/returns', tags = ['admin'])
 def view_returned_product():
     return { "success": True }
 
-@app.post('/api/admin/return/status', tags = ['admin'])
-def change_return_status():
+@app.post('/api/admin/returns/{id}/status', tags = ['admin'])
+def change_return_status(id:int):
     return { "success": True }
 
 @app.get('/api/admin/product/review', tags = ['admin'])
@@ -101,20 +106,20 @@ def view_product_review():
 def add_address():
     return { "success": True }
 
-@app.put('/api/address', tags = ['addressbook'])
-def update_address():
+@app.put('/api/address/{id}', tags = ['addressbook'])
+def update_address(id:int):
     return { "success": True }
 
 @app.get('/api/address', tags = ['addressbook'])
-def get_address():
+def get_address(id:int):
     return { "success": True }
 
-@app.delete('/api/address', tags = ['addressbook'])
-def remove_address():
+@app.delete('/api/address/{id}', tags = ['addressbook'])
+def remove_address(id:int):
     return { "success": True }
 
 @app.post('/api/user/forgotpassword', tags = ['users'])
-def forgot_password():
+def forgot_password(user:ForgotPassword):
     return { "success": True }
 
 @app.get('/api/user/{id}/profile', tags = ['users'])
@@ -145,8 +150,8 @@ def update_bank_account_detail():
 def add_bank_account_detail(id:int):
     return { "success": True }
 
-@app.get('/api/user/return', tags = ['users'])
-def get_returned_product():
+@app.get('/api/user/{id}/return', tags = ['users'])
+def get_returned_product(id:int):
     return {"success": True}
 
 @app.get('/api/category', tags = ['category'])
