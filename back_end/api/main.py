@@ -82,16 +82,16 @@ def update_product_detail(id:int,detail:ProductDetail):
 def view_product_detail(id:int):
     return { "success": True }
 
-@app.get('/api/admin/orders', tags = ['admin'])
-def view_orders():
+@app.get('/api/admin/orders/{status}', tags = ['admin'])
+def view_orders(status:str):
     return { "success": True }
 
 @app.post('/api/admin/orders/{id}/status', tags = ['admin'])
 def change_order_status(id:int):
     return { "success": True }
 
-@app.get('/api/admin/product/returns', tags = ['admin'])
-def view_returned_product():
+@app.get('/api/admin/product/returns/{status}', tags = ['admin'])
+def view_returned_product(status:str):
     return { "success": True }
 
 @app.post('/api/admin/returns/{id}/status', tags = ['admin'])
@@ -102,12 +102,13 @@ def change_return_status(id:int):
 def view_product_review():
     return { "success": True }
 
+
 @app.post('/api/address', tags = ['addressbook'])
-def add_address():
+def add_address(address:Address):
     return { "success": True }
 
 @app.put('/api/address/{id}', tags = ['addressbook'])
-def update_address(id:int):
+def update_address(id:int,address:Address):
     return { "success": True }
 
 @app.get('/api/address', tags = ['addressbook'])
@@ -122,72 +123,72 @@ def remove_address(id:int):
 def forgot_password(user:ForgotPassword):
     return { "success": True }
 
-@app.get('/api/user/{id}/profile', tags = ['users'])
+@app.get('/api/users/{id}/profile', tags = ['users'])
 def get_user_profile(id:int):
     return {"success": True}
 
 @app.post('/api/favoritelist', tags = ['favoritelist'])
-def add_into_favorite_list():
+def add_into_favorite_list(favoritelist:FavoriteListl):
     return { "success": True }
 
 @app.get('/api/favoritelist', tags = ['favoritelist'])
-def view_favorite_products():
+def view_favorite_products(user_id:int):
     return { "success": True }
 
-@app.delete('/api/favoritelist', tags = ['favoritelist'])
-def remove_from_favorite_list(product_id:int):
+@app.delete('/api/favoritelist/{id}', tags = ['favoritelist'])
+def remove_from_favorite_list(id:int):
     return { "success": True }
 
 @app.post('/api/bank/accounts', tags = ['accounts'])
-def add_bank_account_detail():
+def add_bank_account_detail(bank_account:BankAccount):
     return { "success": True }
 
 @app.put('/api/bank/accounts/{id}', tags = ['accounts'])
-def update_bank_account_detail():
+def update_bank_account_detail(id:int,bank_account:BankAccount):
     return { "success": True }
 
-@app.get('/api/bank/accounts/{id}', tags = ['accounts'])
-def add_bank_account_detail(id:int):
+@app.get('/api/bank/accounts', tags = ['accounts'])
+def add_bank_account_detail(user_id:int):
     return { "success": True }
 
-@app.get('/api/user/{id}/return', tags = ['users'])
+@app.get('/api/users/{id}/return', tags = ['users'])
 def get_returned_product(id:int):
     return {"success": True}
 
-@app.get('/api/category', tags = ['category'])
-def view_category(q : str):
+@app.get('/api/categories/{id}', tags = ['categories'])
+def view_category(id : int):
     return {"success": True}
 
-@app.get('/api/category/{id}/child', tags = ['category'])
+@app.get('/api/categories/{id}/child', tags = ['categories'])
 def view_child_category(id:int):
     return {"success": True}
 
-@app.get('/api/category/{id}/parent', tags = ['category'])
+@app.get('/api/categories/{id}/parent', tags = ['categories'])
 def view_parent_category(id:int):
     return {"success": True}
 
-@app.get('/api/brand/{id}', tags = ['brand'])
+@app.get('/api/brands/{id}', tags = ['brands'])
 def view_brand(id:int):
     return {"success": True}
 
 
 @app.get('/api/search', tags = ['products'])
-def view_product(q: str):
+def view_products(q: str):
     return {"success": True}
 
-@app.get('/api/product/{id}', tags = ['products'])
+@app.get('/api/products/{id}', tags = ['products'])
 def view_product_detail(id:int):
     return {"success": True}
 
-@app.post('/api/product/{id}/review', tags = ['products'])
+@app.post('/api/products/{id}/review', tags = ['products'])
 def add_review(id:int, product:Review):
     return {"success": True}
 
-@app.get('/api/product/{id}/review', tags = ['products'])
+@app.get('/api/products/{id}/review', tags = ['products'])
 def get_review(id:int):
     return {"success": True}
 
-@app.post('/api/product/return', tags = ['products'])
+@app.post('/api/products/return', tags = ['products'])
 def create_return_request(product:ProductReturn):
     return {"success": True}
 
@@ -217,8 +218,8 @@ def place_an_order():
 def cancel_order(id:int):
     return {"success": True}
 
-@app.get('/api/orders/{id}', tags = ['orders'])
-def get_order_detail(id:Optional[int] = None):
+@app.get('/api/users/{user_id}/orders', tags = ['orders'])
+def get_order_detail(user_id:int,id:Optional[int] = None):
     return {"success": True}
 
 
