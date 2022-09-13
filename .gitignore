@@ -1,3 +1,5 @@
 .vscode
 back_end/api/__pycache__
 back_end/database/__pycache__
+back_end/enum/__pycache__
+
