@@ -1,10 +1,8 @@
-
 from datetime import date
-from typing import Optional,Union
+from typing import Optional
 from fastapi import FastAPI, UploadFile,Form, File, APIRouter, Depends, Query
 from back_end.Models.brand import Brand
 from back_end.Models.cart import OrderItem
-from back_end.Models.category import Category
 from back_end.Models.login import ForgotPassword, Login
 from back_end.Models.product import Product, ProductDetail
 from back_end.Models.address import Address
@@ -14,6 +12,9 @@ from back_end.Models.favorite_list import FavoriteList
 from back_end.Models.bank_account import BankAccount
 from back_end.Models.register import Register
 from back_end.Models.review import Review
+from back_end.dependencies.login import UserLogin
+from back_end.dependencies.users.user_info.profile import UserProfile
+from back_end.dependencies.users.user_info.register import UsersRegister
 from back_end.enum.order_status import OrderStatus
 from back_end.enum.return_status import ReturnStatus
 from back_end.enum.search import ProductSearch
@@ -27,12 +28,14 @@ router = APIRouter(prefix="/api/v1")
 
 
 @router.post('/auth/register', tags = ['auth'])
-def register(user:Register):
-    return { "success": True }
+def register(user:Register, user_register: UsersRegister = Depends(UsersRegister)):
+    data = user_register.register(user)
+    return { "data":data, "success": True }
 
 @router.post('/auth/login', tags = ['auth'])
-def login(user:Login):
-   return { "success": True }
+def login(user:Login, user_login: UserLogin = Depends(UserLogin)  ):
+   data = user_login.login(user)
+   return { "data":data,"success": True }
 
 @router.get('/admin/dashboard', tags = ['admin'])
 def  get_all_report(token: str = Depends(token_auth_scheme)):
@@ -157,8 +160,9 @@ def forgot_password(user: ForgotPassword):
     return { "success": True }
 
 @router.get('/profile', tags = ['users'])
-def get_user_profile(token: str = Depends(token_auth_scheme)):
-    return {"success": True}
+def get_user_profile(token: str = Depends(token_auth_scheme), profile: UserProfile = Depends(UserProfile)):
+    data = profile.get_profile(token)
+    return {"data": data, "success": True}
 
 
 @router.post('/favoritelist', tags = ['favoritelist'])

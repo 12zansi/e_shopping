@@ -3,3 +3,5 @@ back_end/api/__pycache__
 back_end/database/__pycache__
 back_end/enum/__pycache__
 back_end/Models/__pycache__
+back_end/dependencies/__pycache__
+back_end/dependencies/users/user_info/__pycache__
