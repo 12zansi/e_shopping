@@ -224,10 +224,10 @@ def view_cart(token: str = Depends(token_auth_scheme)):
    return { "success": True }
 
 @router.put('/carts/{id}', tags = ['carts'])
-def update_quantity(id:int,quantity: int,token: str = Depends(token_auth_scheme)):
-    if quantity >= 1:
-      return { "success": True }
-    return "please enter quantity greater than  1"
+def update_quantity(id:int,quantity: int = Query(default = 1, gt = 0),token: str = Depends(token_auth_scheme)):
+  
+    return { "success": True }
+    
 
 @router.delete('/carts/{id}', tags = ['carts'])
 def remove_item(id: Optional[int] = None, token: str = Depends(token_auth_scheme)):
