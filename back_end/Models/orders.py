@@ -4,6 +4,5 @@ class Orders(BaseModel):
 
   address_id: int
   cart_id: int
-  user_id: int
   
-}
+

@@ -9,4 +9,3 @@ class Address(BaseModel):
     pincode: str
     state: str
     address_type: str
-    user_id: int

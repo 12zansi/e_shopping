@@ -5,4 +5,4 @@ class BankAccount(BaseModel):
       account_no: int
       ifsc_code: str
       branch_name: str
-      user_id: int
+

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class ModelName(str, Enum):
-    brand = "brand"
-    category = "category"
-    product = "product"
+class ProductSearch(str, Enum):
+    BRAND = "brand"
+    CATEGORY = "category"
+    PRODUCT = "product"

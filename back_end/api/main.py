@@ -1,6 +1,9 @@
-from typing import Optional
-from fastapi import FastAPI, UploadFile,Form, File
+
+from datetime import date
+from typing import Optional,Union
+from fastapi import FastAPI, UploadFile,Form, File, APIRouter, Depends, Query
 from back_end.Models.brand import Brand
+from back_end.Models.cart import OrderItem
 from back_end.Models.category import Category
 from back_end.Models.login import ForgotPassword, Login
 from back_end.Models.product import Product, ProductDetail
@@ -11,225 +14,247 @@ from back_end.Models.favorite_list import FavoriteList
 from back_end.Models.bank_account import BankAccount
 from back_end.Models.register import Register
 from back_end.Models.review import Review
-from back_end.enum.search import ModelName
+from back_end.enum.order_status import OrderStatus
+from back_end.enum.return_status import ReturnStatus
+from back_end.enum.search import ProductSearch
+from fastapi.security import HTTPBearer 
 
 
+token_auth_scheme = HTTPBearer()
 
-app = FastAPI(
-    title="e-Shopping",
-    description="This is online shopping site for customer."
-)
 
-@app.post('/api/auth/register', tags = ['auth'])
+router = APIRouter(prefix="/api/v1")
+
+
+@router.post('/auth/register', tags = ['auth'])
 def register(user:Register):
     return { "success": True }
 
-@app.post('/api/auth/login', tags = ['auth'])
+@router.post('/auth/login', tags = ['auth'])
 def login(user:Login):
    return { "success": True }
 
-@app.get('/api/admin/dashboard', tags = ['admin'])
-def  get_all_report():
+@router.get('/admin/dashboard', tags = ['admin'])
+def  get_all_report(token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.get('/api/admin/{search}', tags = ['admin'])
-def  get_all_detail(search: ModelName):
+@router.get('/admin/products/{search}', tags = ['admin'])
+def  get_all_detail(search: ProductSearch,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.post('/api/admin/brands', tags = ['admin'])
-def add_brand(brand:Brand):
+@router.post('/admin/brands', tags = ['admin'])
+def add_brand(brand:Brand,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.put('/api/admin/brands/{id}', tags = ['admin'])
-def update_brand( id:int, brand:Brand):
+@router.get('/admin/brands/{id}', tags = ['admin'])
+def get_brand(id:int,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.post('/api/admin/categories', tags = ['admin'])
-def add_category(category:Category):
+@router.put('/admin/brands/{id}', tags = ['admin'])
+def update_brand(id:int, brand:Brand,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.put('/api/admin/categories/{id}', tags = ['admin'])
-def update_category(id:int, category:Category):
+@router.delete('/admin/brands/{id}', tags = ['admin'])
+def remove_brand(id:int,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.post('/api/admin/products', tags = ['admin'])
-def add_product(product:Product):
+@router.post('/admin/categories', tags = ['admin'])
+def add_category(name:str = Form(...),image:UploadFile = File(...) ,parent_id:str = Form(default=0),token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.put('/api/admin/products/{id}', tags = ['admin'])
-def update_product(id:int, product:Product):
+@router.get('/admin/categories/{id}', tags = ['admin'])
+def get_category(id:int,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.post('/api/admin/products/{id}/images', tags = ['admin'])
-def add_images( id: int, file1: list[UploadFile] = File(...)):
+@router.put('/admin/categories/{id}', tags = ['admin'])
+def update_category(id:int,name:str = Form(...),image:UploadFile = File(...) ,parent_id:str = Form(default=0),token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.delete('/admin/categories/{id}', tags = ['admin'])
+def remove_category(id:int,token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.post('/admin/products', tags = ['admin'])
+def add_product(product:Product,token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.put('/admin/products/{id}', tags = ['admin'])
+def update_product(id:int, product:Product,token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.post('/admin/products/{id}/images', tags = ['admin'])
+def add_images( id: int, image: list[UploadFile] = File(...),token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.get('/admin/products/images/{id}', tags = ['admin'])
+def get_images( id: int, token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.put('/admin/products/images/{id}', tags = ['admin'])
+def update_product_images(id:int, image: UploadFile = File(...),token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.delete('/admin/products/images/{id}', tags = ['admin'])
+def remove_product_images(id:int, token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.post('/admin/products/{id}/attributes', tags = ['admin'])
+def add_attribute(id:int, detail:ProductDetail, token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.delete('/admin/products/{id}/attributes', tags = ['admin'])
+def remove_attribute(id:int, token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.put('/admin/products/attributes/{id}', tags = ['admin'])
+def update_product_attribute(id:int, detail:ProductDetail,token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.get('/admin/products/attributes/{id}', tags = ['admin'])
+def view_product_attribute(id:int,token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.get('/admin/products/{id}/detail', tags = ['admin'])
+def view_product_detail(id:int,token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.get('/admin/orders/', tags = ['admin'])
+def view_orders(start_date:date,end_date:date,status:OrderStatus,token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.put('/admin/orders/{id}', tags = ['admin'])
+def change_order_status(id:int, status:OrderStatus,token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.get('/admin/returns', tags = ['admin'])
+def view_returned_product(start_date:date,end_date:date, token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.put('/admin/returns/{id}', tags = ['admin'])
+def change_return_status(id:int, status: ReturnStatus, token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
 
-@app.put('/api/admin/products/images/{id}', tags = ['admin'])
-def update_product_images(id:int, file1: UploadFile = File(...)):
+@router.post('/address', tags = ['addressbook'])
+def add_address(address: Address,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.get('/api/admin/product/{id}/images', tags = ['admin'])
-def view_product_images(id:int):
+@router.put('/address/{id}', tags = ['addressbook'])
+def update_address(id:int,address: Address,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.post('/api/admin/products/{id}/detail', tags = ['admin'])
-def add_detail(id:int, detail:ProductDetail):
+@router.get('/address', tags = ['addressbook'])
+def get_address(token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.put('/api/admin/products/detail/{id}', tags = ['admin'])
-def update_product_detail(id:int, detail:ProductDetail):
-    return { "success": True }
-
-@app.get('/api/admin/product/{id}/detail', tags = ['admin'])
-def view_product_detail(id:int):
-    return { "success": True }
-
-@app.get('/api/admin/orders/{status}', tags = ['admin'])
-def view_orders(status:str):
-    return { "success": True }
-
-@app.post('/api/admin/orders/{id}/status', tags = ['admin'])
-def change_order_status(id:int, status:str):
-    return { "success": True }
-
-@app.get('/api/admin/product/returns/{status}', tags = ['admin'])
-def view_returned_product(status:str):
-    return { "success": True }
-
-@app.post('/api/admin/returns/{id}/status', tags = ['admin'])
-def change_return_status(id:int, status: str):
-    return { "success": True }
-
-@app.get('/api/admin/product/{id}/review', tags = ['admin'])
-def view_product_review(id:int):
+@router.delete('/address/{id}', tags = ['addressbook'])
+def remove_address(id:int,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
 
-@app.post('/api/address', tags = ['addressbook'])
-def add_address(address: Address):
-    return { "success": True }
-
-@app.put('/api/address/{id}', tags = ['addressbook'])
-def update_address(id:int,address: Address):
-    return { "success": True }
-
-@app.get('/api/address', tags = ['addressbook'])
-def get_address(id:int):
-    return { "success": True }
-
-@app.delete('/api/address/{id}', tags = ['addressbook'])
-def remove_address(id:int):
-    return { "success": True }
-
-
-@app.post('/api/user/forgotpassword', tags = ['users'])
+@router.post('/users/forgotpassword', tags = ['users'])
 def forgot_password(user: ForgotPassword):
     return { "success": True }
 
-@app.get('/api/users/{id}/profile', tags = ['users'])
-def get_user_profile(id:int):
+@router.get('/profile', tags = ['users'])
+def get_user_profile(token: str = Depends(token_auth_scheme)):
     return {"success": True}
 
 
-@app.post('/api/favoritelist', tags = ['favoritelist'])
-def add_into_favorite_list(favoritelist: FavoriteListl):
+@router.post('/favoritelist', tags = ['favoritelist'])
+def add_into_favorite_list(favoritelist: FavoriteList,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.get('/api/favoritelist', tags = ['favoritelist'])
-def view_favorite_products(user_id:int):
+@router.get('/favoritelist', tags = ['favoritelist'])
+def view_favorite_products(token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.delete('/api/favoritelist/{id}', tags = ['favoritelist'])
-def remove_from_favorite_list(id:int):
-    return { "success": True }
-
-
-@app.post('/api/bank/accounts', tags = ['accounts'])
-def add_bank_account_detail(bank_account: BankAccount):
-    return { "success": True }
-
-@app.put('/api/bank/accounts/{id}', tags = ['accounts'])
-def update_bank_account_detail(id:int,bank_account:BankAccount):
-    return { "success": True }
-
-@app.get('/api/bank/accounts', tags = ['accounts'])
-def add_bank_account_detail(user_id:int):
+@router.delete('/favoritelist/{id}', tags = ['favoritelist'])
+def remove_from_favorite_list(id:int,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
 
-@app.get('/api/users/{id}/return', tags = ['users'])
-def get_returned_product(id:int):
+@router.post('/bank/accounts', tags = ['accounts'])
+def add_bank_account_detail(bank_account: BankAccount,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
+@router.put('/bank/accounts/{id}', tags = ['accounts'])
+def update_bank_account_detail(id:int,bank_account:BankAccount,token: str = Depends(token_auth_scheme)):
+    return { "success": True }
 
-@app.get('/api/categories/{id}', tags = ['categories'])
+@router.get('/bank/accounts', tags = ['accounts'])
+def add_bank_account_detail(token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+@router.get('/categories/{id}', tags = ['categories'])
 def view_category(id : int):
     return { "success": True }
 
-@app.get('/api/categories/{id}/child', tags = ['categories'])
+@router.get('/categories/{id}/child', tags = ['categories'])
 def view_child_category(id:int):
     return { "success": True }
 
-@app.get('/api/categories/{id}/parent', tags = ['categories'])
-def view_parent_category(id:int):
-    return { "success": True }
-
-
-@app.get('/api/brands/{id}', tags = ['brands'])
+@router.get('/brands/{id}', tags = ['brands'])
 def view_brand(id:int):
     return { "success": True }
 
 
-@app.get('/api/search', tags = ['products'])
+@router.get('/products/search', tags = ['products'])
 def view_products(q: str):
     return { "success": True }
 
-@app.get('/api/products/{id}', tags = ['products'])
+@router.get('/products/{id}', tags = ['products'])
 def view_product_detail(id:int):
     return { "success": True }
 
-@app.post('/api/products/{id}/review', tags = ['products'])
-def add_review(id:int, product:Review):
+@router.post('/products/{id}/review', tags = ['products'])
+def add_review(id:int, product:Review,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.get('/api/products/{id}/review', tags = ['products'])
+@router.get('/products/{id}/review', tags = ['products'])
 def get_review(id:int):
     return { "success": True }
 
-@app.post('/api/products/return', tags = ['products'])
-def create_return_request(product:ProductReturn):
+@router.post('/carts', tags = ['carts'])
+def add_into_cart(user:OrderItem,token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-
-@app.post('/api/carts', tags = ['carts'])
-def add_into_cart(product_id:int):
-    return { "success": True }
-
-@app.get('/api/carts', tags = ['carts'])
-def view_cart(user_id:int):
+@router.get('/carts', tags = ['carts'])
+def view_cart(token: str = Depends(token_auth_scheme)):
    return { "success": True }
 
-@app.put('/api/carts/{id}', tags = ['carts'])
-def update_quantity(id:int,qauntity:int):
+@router.put('/carts/{id}', tags = ['carts'])
+def update_quantity(id:int,quantity: int,token: str = Depends(token_auth_scheme)):
+    if quantity >= 1:
+      return { "success": True }
+    return "please enter quantity greater than  1"
+
+@router.delete('/carts/{id}', tags = ['carts'])
+def remove_item(id: Optional[int] = None, token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@app.delete('/api/carts/{id}', tags = ['carts'])
-def remove_item(id: Optional[int] = None):
-    return { "success": True }
 
-
-@app.post('/api/orders', tags = ['orders'])
-def place_an_order(user:Orders):
+@router.post('/orders', tags = ['orders'])
+def place_an_order(user:Orders, token: str = Depends(token_auth_scheme)):
    return {"success": True}
 
-@app.post('/api/orders/{id}/cancel', tags = ['orders'])
-def cancel_order(id:int):
+@router.post('/orders/{id}/cancel', tags = ['orders'])
+def cancel_order(id:int,token: str = Depends(token_auth_scheme)):
     return {"success": True}
 
-@app.get('/api/orders', tags = ['orders'])
-def get_order_detail(id:Optional[int] = None, user_id:int):
+@router.get('/orders', tags = ['orders'])
+def get_order_detail(id:Optional[int] = None , token: str = Depends(token_auth_scheme)):
     return {"success": True}
 
+@router.post('/orders/{id}/items/{item_id}/return', tags = ['orders'])
+def create_return_request(id:int,item_id:int,product:ProductReturn,token: str = Depends(token_auth_scheme)):
+    return { "success": True }
+
+app = FastAPI(
+    title="e-Shopping",
+    description="This is online shopping site for customer."
+   
+)
+app.include_router(router)
 
 
