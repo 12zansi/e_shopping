@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from back_end.Models.login import Login
-from back_end.database.connection import my_cursor
+from back_end.database.connection import cursor
+from back_end.database.mysql.profile import TBUser
 from back_end.dependencies.users.user_info.register import UsersRegister
 from jose import jwt, JWTError
 from fastapi import HTTPException
@@ -12,7 +13,7 @@ class UserLogin:
 
     def __verify_password(plain_password: str, hashed_password: str) -> bool:
         
-        return UsersRegister.PWD_CONTEXT.verify(plain_password, hashed_password)
+        return UsersRegister.pwd_context.verify(plain_password, hashed_password)
 
     def __create_access_token(data: dict, expire_delta: timedelta | None = None):
         to_encode = data.copy()
@@ -30,30 +31,44 @@ class UserLogin:
         password: str,
     ):
         query = "SELECT * FROM users WHERE email = %s "
-        my_cursor.execute(query, (email,))
-        
+        cursor.execute(query, (email,))
+       
 
-        result = my_cursor.fetchall()
-        print(result[0][3])
-
+        result = cursor.fetchone()
+        print(result)
         if not result:
             return None
-        if not UserLogin.__verify_password(password, result[0][3]):
+        if not UserLogin.__verify_password(password, result[3]):
             return None
 
-        return {"id":result[0][0],"name":result[0][1],"email":result[0][2],"password":result[0][3],"is_admin":result[0][4]}
+        data = TBUser()
+        data.id = result[0]
+        data.name = result[1]
+        data.email = result[2]
+        data.password = result[3]
+        data.is_admin = result[4]
+        
+        return data
 
     def login(self,form_data:Login):
         user = UserLogin.__authenticate(email = form_data.email,
                             password = form_data.password)
+
         if not user:
             raise HTTPException(
                 status_code=400, detail="incorrect username or password")
 
         access_token_expires = timedelta(minutes = UserLogin.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = UserLogin.__create_access_token(
-            data={"sub": user['name'],"id": user['id']}, expire_delta = access_token_expires
+            data={"sub": user.name,"id": user.id}, expire_delta = access_token_expires
         )
+        
+        token_detail = { 
+                "is_admin":user.is_admin,
+                "access_token": access_token,
+                "token_type": "bearer" 
 
-        return {"id":user['id'], "name":user['name'], "is_admin":user['is_admin'], "access_token": access_token, "token_type": "bearer" }
+                }
+
+        return token_detail
 

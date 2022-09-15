@@ -30,12 +30,12 @@ router = APIRouter(prefix="/api/v1")
 @router.post('/auth/register', tags = ['auth'])
 def register(user:Register, user_register: UsersRegister = Depends(UsersRegister)):
     data = user_register.register(user)
-    return { "data":data, "success": True }
+    return { "data":data }
 
 @router.post('/auth/login', tags = ['auth'])
 def login(user:Login, user_login: UserLogin = Depends(UserLogin)  ):
    data = user_login.login(user)
-   return { "data":data,"success": True }
+   return { "token_detail":data,"success": True }
 
 @router.get('/admin/dashboard', tags = ['admin'])
 def  get_all_report(token: str = Depends(token_auth_scheme)):
