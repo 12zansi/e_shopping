@@ -1,5 +1,6 @@
 from passlib.context import CryptContext
 from fastapi import HTTPException
+
 from back_end.Models.register import Register
 from email_validator import validate_email, EmailNotValidError
 from back_end.database.connection import cursor, connection

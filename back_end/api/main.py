@@ -13,6 +13,7 @@ from back_end.Models.bank_account import BankAccount
 from back_end.Models.register import Register
 from back_end.Models.review import Review
 from back_end.dependencies.login import UserLogin
+from back_end.dependencies.users.addressbook.addressbook import AddressBook
 from back_end.dependencies.users.user_info.profile import UserProfile
 from back_end.dependencies.users.user_info.register import UsersRegister
 from back_end.enum.order_status import OrderStatus
@@ -33,7 +34,7 @@ def register(user:Register, user_register: UsersRegister = Depends(UsersRegister
     return { "data":data }
 
 @router.post('/auth/login', tags = ['auth'])
-def login(user:Login, user_login: UserLogin = Depends(UserLogin)  ):
+def login(user:Login, user_login: UserLogin = Depends(UserLogin)):
    data = user_login.login(user)
    return { "token_detail":data,"success": True }
 
@@ -105,7 +106,7 @@ def remove_product_images(id:int, token: str = Depends(token_auth_scheme)):
 def add_attribute(id:int, detail:ProductDetail, token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@router.delete('/admin/products/{id}/attributes', tags = ['admin'])
+@router.delete('/admin/products/attributes/{id}', tags = ['admin'])
 def remove_attribute(id:int, token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
@@ -139,16 +140,19 @@ def change_return_status(id:int, status: ReturnStatus, token: str = Depends(toke
 
 
 @router.post('/address', tags = ['addressbook'])
-def add_address(address: Address,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def add_address(address: Address,token: str = Depends(token_auth_scheme),addressbook: AddressBook = Depends(AddressBook)):
+    data = addressbook.add_address(address, token)
+    return { "data": data,"success": True }
 
 @router.put('/address/{id}', tags = ['addressbook'])
-def update_address(id:int,address: Address,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def update_address(id:int,address: Address,token: str = Depends(token_auth_scheme), addressbook: AddressBook = Depends(AddressBook)):
+    data = addressbook.update_address(id,address,token)
+    return { "data": data,"success": True }
 
 @router.get('/address', tags = ['addressbook'])
-def get_address(token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def get_address(token: str = Depends(token_auth_scheme), addressbook: AddressBook = Depends(AddressBook)):
+    data = addressbook.get_address(token)
+    return { "data": data, "success": True }
 
 @router.delete('/address/{id}', tags = ['addressbook'])
 def remove_address(id:int,token: str = Depends(token_auth_scheme)):
@@ -187,7 +191,7 @@ def update_bank_account_detail(id:int,bank_account:BankAccount,token: str = Depe
     return { "success": True }
 
 @router.get('/bank/accounts', tags = ['accounts'])
-def add_bank_account_detail(token: str = Depends(token_auth_scheme)):
+def view_bank_account_detail(token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
 @router.get('/categories/{id}', tags = ['categories'])

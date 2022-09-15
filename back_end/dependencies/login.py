@@ -5,25 +5,48 @@ from back_end.database.mysql.profile import TBUser
 from back_end.dependencies.users.user_info.register import UsersRegister
 from jose import jwt, JWTError
 from fastapi import HTTPException
+from fastapi import Depends,HTTPException
+from fastapi.security import HTTPBearer 
+
+
+
+token_auth_scheme = HTTPBearer()
 
 class UserLogin:
     _JWT_SECRET = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
     Algorithm = "HS256"
 
-    def __verify_password(plain_password: str, hashed_password: str) -> bool:
-        
+    def __verify_password(plain_password: str, hashed_password: str):
         return UsersRegister.pwd_context.verify(plain_password, hashed_password)
 
     def __create_access_token(data: dict, expire_delta: timedelta | None = None):
         to_encode = data.copy()
+
         if expire_delta:
             expire = datetime.utcnow() + expire_delta
         else:
             expire = datetime.utcnow() + timedelta(minutes=30)
+
         to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, UserLogin._JWT_SECRET, algorithm=UserLogin.Algorithm)
+        encoded_jwt = jwt.encode(to_encode, UserLogin._JWT_SECRET, algorithm = UserLogin.Algorithm)
         return encoded_jwt
+
+    def _get_user(token:str = Depends(token_auth_scheme)):
+        print(token)
+        try:
+            payload = jwt.decode(token.credentials, UserLogin._JWT_SECRET, algorithms=['HS256'])
+            username: str = payload.get("sub")
+            user_id: str = payload.get("id")
+     
+
+        except jwt.ExpiredSignatureError:
+           raise HTTPException(status_code=403, detail="token has been expired")
+        
+        except JWTError:
+           raise HTTPException(status_code=401, detail="Could Not Valid Credentials")
+        
+        return username,user_id
 
     def __authenticate(
         
@@ -35,7 +58,7 @@ class UserLogin:
        
 
         result = cursor.fetchone()
-        print(result)
+    
         if not result:
             return None
         if not UserLogin.__verify_password(password, result[3]):
@@ -64,7 +87,8 @@ class UserLogin:
         )
         
         token_detail = { 
-                "is_admin":user.is_admin,
+
+                "is_admin": user.is_admin,
                 "access_token": access_token,
                 "token_type": "bearer" 
 
