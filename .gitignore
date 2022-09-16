@@ -8,3 +8,5 @@ back_end/dependencies/users/user_info/__pycache__
 unused.txt
 back_end/database/mysql/__pycache__
 back_end/dependencies/users/addressbook/__pycache__
+
+back_end/dependencies/users/favorite_list/__pycache__

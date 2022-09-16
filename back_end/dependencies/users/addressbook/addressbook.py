@@ -1,4 +1,3 @@
-from audioop import add
 from fastapi import Depends
 from back_end.Models.address import Address
 from back_end.database.connection import cursor, connection

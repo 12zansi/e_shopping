@@ -14,6 +14,7 @@ from back_end.Models.register import Register
 from back_end.Models.review import Review
 from back_end.dependencies.login import UserLogin
 from back_end.dependencies.users.addressbook.addressbook import AddressBook
+from back_end.dependencies.users.favorite_list.favoritelist import UserFavorite
 from back_end.dependencies.users.user_info.profile import UserProfile
 from back_end.dependencies.users.user_info.register import UsersRegister
 from back_end.enum.order_status import OrderStatus
@@ -170,16 +171,19 @@ def get_user_profile(token: str = Depends(token_auth_scheme), profile: UserProfi
 
 
 @router.post('/favoritelist', tags = ['favoritelist'])
-def add_into_favorite_list(favoritelist: FavoriteList,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def add_into_favorite_list(favorite_list:FavoriteList,token: str = Depends(token_auth_scheme), user_favorite: UserFavorite = Depends(UserFavorite)):
+    data = user_favorite.add_into_favorite_list(favorite_list,token)
+    return { "data": data }
 
 @router.get('/favoritelist', tags = ['favoritelist'])
-def view_favorite_products(token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def view_favorite_products(token: str = Depends(token_auth_scheme), user_favorite: UserFavorite = Depends(UserFavorite)):
+    data = user_favorite.get_favorite_list(token)
+    return { "data":data,"success": True }
 
 @router.delete('/favoritelist/{id}', tags = ['favoritelist'])
-def remove_from_favorite_list(id:int,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def remove_from_favorite_list(id:int,token: str = Depends(token_auth_scheme), user_favorite: UserFavorite = Depends(UserFavorite)):
+    data = user_favorite.delete_into_favorite_list(id,token)
+    return { "data": data }
 
 
 @router.post('/bank/accounts', tags = ['accounts'])
