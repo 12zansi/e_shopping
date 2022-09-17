@@ -33,11 +33,12 @@ class UserLogin:
         return encoded_jwt
 
     def _get_user(token:str = Depends(token_auth_scheme)):
-        print(token)
+
         try:
             payload = jwt.decode(token.credentials, UserLogin._JWT_SECRET, algorithms=['HS256'])
             username: str = payload.get("sub")
             user_id: str = payload.get("id")
+            is_admin: str = payload.get("is_admin")
      
 
         except jwt.ExpiredSignatureError:
@@ -46,19 +47,18 @@ class UserLogin:
         except JWTError:
            raise HTTPException(status_code=401, detail="Could Not Valid Credentials")
         
-        return username,user_id
+        return username,user_id,is_admin
 
     def __authenticate(
         
         email: str,
         password: str,
     ):
-        query = "SELECT * FROM users WHERE email = %s "
+        query = "SELECT * FROM users WHERE email = %s"
         cursor.execute(query, (email,))
        
 
         result = cursor.fetchone()
-    
         if not result:
             return None
         if not UserLogin.__verify_password(password, result[3]):
@@ -70,6 +70,7 @@ class UserLogin:
         data.email = result[2]
         data.password = result[3]
         data.is_admin = result[4]
+        data.otp = result[5]
         
         return data
 
@@ -77,13 +78,16 @@ class UserLogin:
         user = UserLogin.__authenticate(email = form_data.email,
                             password = form_data.password)
 
+        if user.otp != 0:
+            return "please verify your otp"
+
         if not user:
             raise HTTPException(
                 status_code=400, detail="incorrect username or password")
 
         access_token_expires = timedelta(minutes = UserLogin.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = UserLogin.__create_access_token(
-            data={"sub": user.name,"id": user.id}, expire_delta = access_token_expires
+            data={"sub": user.name,"id": user.id,"is_admin":user.is_admin}, expire_delta = access_token_expires
         )
         
         token_detail = { 

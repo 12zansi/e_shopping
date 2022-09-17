@@ -15,7 +15,7 @@ class UserProfile(UserLogin):
             payload = jwt.decode(token.credentials, UserProfile._JWT_SECRET, algorithms=['HS256'])
             username: str = payload.get("sub")
             id: str = payload.get("id")
-            print(id)
+
 
         except jwt.ExpiredSignatureError:
            raise HTTPException(status_code=403, detail="token has been expired")

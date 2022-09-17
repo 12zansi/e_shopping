@@ -6,3 +6,4 @@ class TBUser:
     email: str
     password: str
     is_admin: int
+    otp: int

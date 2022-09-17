@@ -1,4 +1,5 @@
 from datetime import date
+import random
 from typing import Optional
 from fastapi import FastAPI, UploadFile,Form, File, APIRouter, Depends, Query
 from back_end.Models.brand import Brand
@@ -10,17 +11,22 @@ from back_end.Models.orders import Orders
 from back_end.Models.product_return import ProductReturn
 from back_end.Models.favorite_list import FavoriteList
 from back_end.Models.bank_account import BankAccount
-from back_end.Models.register import Register
+from back_end.Models.register import Register, Verification
 from back_end.Models.review import Review
+from back_end.dependencies.admin.brand.brand import AdminBrand
 from back_end.dependencies.login import UserLogin
 from back_end.dependencies.users.addressbook.addressbook import AddressBook
 from back_end.dependencies.users.favorite_list.favoritelist import UserFavorite
+from back_end.dependencies.users.product.product import UserProduct
+from back_end.dependencies.users.user_info.forgot_password import UserForgotPassword
 from back_end.dependencies.users.user_info.profile import UserProfile
 from back_end.dependencies.users.user_info.register import UsersRegister
 from back_end.enum.order_status import OrderStatus
 from back_end.enum.return_status import ReturnStatus
 from back_end.enum.search import ProductSearch
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer 
+from fastapi_mail import FastMail, MessageSchema,ConnectionConfig
 
 
 token_auth_scheme = HTTPBearer()
@@ -28,11 +34,39 @@ token_auth_scheme = HTTPBearer()
 
 router = APIRouter(prefix="/api/v1")
 
+# pcjxjktxygriwiev
+conf = ConnectionConfig(
+      MAIL_USERNAME = "zansiviradiya2002@gmail.com",
+      MAIL_PASSWORD = "pcjxjktxygriwiev",
+      MAIL_FROM = "zansiviradiya2002@gmail.com",
+      MAIL_PORT = 587,
+      MAIL_SERVER="smtp.gmail.com",
+      MAIL_TLS=True,
+      MAIL_SSL=False,
+      USE_CREDENTIALS = True,
+      VALIDATE_CERTS = True
+    )
+    
 
 @router.post('/auth/register', tags = ['auth'])
-def register(user:Register, user_register: UsersRegister = Depends(UsersRegister)):
-    data = user_register.register(user)
-    return { "data":data }
+async def register(user:Register, user_register: UsersRegister = Depends(UsersRegister)):
+    otp = user_register.register(user)
+    message = MessageSchema(
+         subject="Fastapi-Mail module",
+         recipients = [user.email],
+         body = "verify your account otp no: " + str(otp),
+        )
+
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+    return { "data":"mail sent your gmail account"+ user.email }
+
+
+@router.post('/auth/otp',tags = ['auth'])
+def verify_account(verification:Verification, user_register: UsersRegister = Depends(UsersRegister)):
+    data = user_register.verify_otp(verification)
+    return data
 
 @router.post('/auth/login', tags = ['auth'])
 def login(user:Login, user_login: UserLogin = Depends(UserLogin)):
@@ -48,16 +82,20 @@ def  get_all_detail(search: ProductSearch,token: str = Depends(token_auth_scheme
     return { "success": True }
 
 @router.post('/admin/brands', tags = ['admin'])
-def add_brand(brand:Brand,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def add_brand(brand:Brand,token: str = Depends(token_auth_scheme),admin_brand: AdminBrand = Depends(AdminBrand)):
+    data = admin_brand.add_brand(brand,token)
+    return {"data":data }
 
 @router.get('/admin/brands/{id}', tags = ['admin'])
-def get_brand(id:int,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def get_brand(id:int,token: str = Depends(token_auth_scheme),admin_brand: AdminBrand = Depends(AdminBrand)):
+    data = admin_brand.get_brand(id,token)
+    return data 
 
 @router.put('/admin/brands/{id}', tags = ['admin'])
-def update_brand(id:int, brand:Brand,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def update_brand(id:int, brand:Brand,token: str = Depends(token_auth_scheme),admin_brand: AdminBrand = Depends(AdminBrand)):
+    data = admin_brand.get_brand(id, brand,token)
+    return data 
+    
 
 @router.delete('/admin/brands/{id}', tags = ['admin'])
 def remove_brand(id:int,token: str = Depends(token_auth_scheme)):
@@ -156,13 +194,15 @@ def get_address(token: str = Depends(token_auth_scheme), addressbook: AddressBoo
     return { "data": data, "success": True }
 
 @router.delete('/address/{id}', tags = ['addressbook'])
-def remove_address(id:int,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def remove_address(id:int,token: str = Depends(token_auth_scheme), addressbook: AddressBook = Depends(AddressBook)):
+    data = addressbook.delete_address(id,token)
+    return data
 
 
 @router.post('/users/forgotpassword', tags = ['users'])
-def forgot_password(user: ForgotPassword):
-    return { "success": True }
+def forgot_password(user: ForgotPassword,user_password:UserForgotPassword = Depends(UserForgotPassword)):
+    data = user_password.change_password(user)
+    return data
 
 @router.get('/profile', tags = ['users'])
 def get_user_profile(token: str = Depends(token_auth_scheme), profile: UserProfile = Depends(UserProfile)):
@@ -212,8 +252,9 @@ def view_brand(id:int):
 
 
 @router.get('/products/search', tags = ['products'])
-def view_products(q: str):
-    return { "success": True }
+def view_products(q: str, search: UserProduct = Depends(UserProduct)):
+    data = search.search_product(q)
+    return { "data":data,"success": True }
 
 @router.get('/products/{id}', tags = ['products'])
 def view_product_detail(id:int):
@@ -268,5 +309,13 @@ app = FastAPI(
    
 )
 app.include_router(router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials = True,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 

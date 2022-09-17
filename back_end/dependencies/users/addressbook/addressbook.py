@@ -76,6 +76,17 @@ class AddressBook(UserLogin):
 
         return "update record successfully"
 
+    def delete_address(self,id:int, token = Depends(token_auth_scheme)):
+        user = AddressBook._get_user(token)
+        query = """DELETE FROM address WHERE id = %s and user_id = %s"""
+        value = (id, user[1])
+        cursor.execute(query, value)
+        connection.commit()
+        if cursor.rowcount != 0:
+            return {"data":"address successfully deleted",}
+         
+        return {"data":"address doesn't exists"}
+
 
 
 
