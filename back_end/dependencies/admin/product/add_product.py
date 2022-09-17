@@ -1,13 +1,13 @@
 from back_end.Models.product import Product
 from back_end.database.connection import cursor, connection
 from back_end.dependencies.login import UserLogin, token_auth_scheme
+from fastapi import Depends
 
-
-class AdminProduct(UserLogin):
+class AdminProducts(UserLogin):
       
     def  publish_product(self, product:Product, token: str = Depends(token_auth_scheme)):
         
-        user = Adminproduct._get_user(token)
+        user = AdminProducts._get_user(token)
 
         if user[2] == 1:
             
@@ -21,7 +21,7 @@ class AdminProduct(UserLogin):
         return "Could Not Valid Credentials"
         
     def view_product(self,id: int, token: str = Depends(token_auth_scheme)):
-        user = Adminproduct._get_user(token)
+        user = AdminProducts._get_user(token)
 
         if user[2] == 1:
             query = """SELECT * FROM product WHERE id = %s"""
@@ -34,7 +34,7 @@ class AdminProduct(UserLogin):
         return {"data":"Could Not Valid Credentials"}
 
     def change_product(self, id:int, product:Product, token: str = Depends(token_auth_scheme)):
-        user = Adminproduct._get_user(token)
+        user = AdminProducts._get_user(token)
         
         if user[2] == 1:
             

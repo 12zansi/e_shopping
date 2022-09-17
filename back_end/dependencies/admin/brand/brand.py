@@ -4,11 +4,11 @@ from fastapi import Depends
 from back_end.dependencies.login import UserLogin,token_auth_scheme
 
 
-class AdminBrand(UserLogin):
+class AdminBrands(UserLogin):
       
     def  add_brand(self, brand: Brand , token: str = Depends(token_auth_scheme)):
         
-        user = AdminBrand._get_user(token)
+        user = AdminBrands._get_user(token)
 
         if user[2] == 1:
             
@@ -22,12 +22,12 @@ class AdminBrand(UserLogin):
         return "Could Not Valid Credentials"
         
     def get_brand(self,id: int, token: str = Depends(token_auth_scheme)):
-        user = AdminBrand._get_user(token)
+        user = AdminBrands._get_user(token)
 
         if user[2] == 1:
             query = """SELECT * FROM brand WHERE id = %s"""
           
-            cursor.execute(query, id)
+            cursor.execute(query, (id,))
             result = cursor.fetchone()
 
             return {"data":result,"success":True}
@@ -35,7 +35,7 @@ class AdminBrand(UserLogin):
         return {"data":"Could Not Valid Credentials"}
 
     def update_brand(self,id: int, brand: Brand , token: str = Depends(token_auth_scheme)):
-        user = AdminBrand._get_user(token)
+        user = AdminBrands._get_user(token)
 
         if user[2] == 1:
             

@@ -59,6 +59,7 @@ class UserLogin:
        
 
         result = cursor.fetchone()
+        
         if not result:
             return None
         if not UserLogin.__verify_password(password, result[3]):
@@ -77,9 +78,6 @@ class UserLogin:
     def login(self,form_data:Login):
         user = UserLogin.__authenticate(email = form_data.email,
                             password = form_data.password)
-
-        if user.otp != 0:
-            return "please verify your otp"
 
         if not user:
             raise HTTPException(

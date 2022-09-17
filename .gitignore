@@ -1,6 +1,7 @@
 .vscode
 back_end/api/__pycache__
 back_end/database/__pycache__
+back_end/database/tables/__pycache__
 back_end/enum/__pycache__
 back_end/Models/__pycache__
 back_end/dependencies/__pycache__
@@ -9,5 +10,9 @@ unused.txt
 back_end/database/mysql/__pycache__
 back_end/dependencies/users/addressbook/__pycache__
 back_end/dependencies/admin/brand/__pycache__
+back_end/dependencies/admin/category/__pycache__
+back_end/dependencies/admin/orders/__pycache__
+back_end/dependencies/admin/product/__pycache__
+back_end/dependencies/admin/return_product/__pycache__
 back_end/dependencies/users/product/__pycache__
 back_end/dependencies/users/favorite_list/__pycache__

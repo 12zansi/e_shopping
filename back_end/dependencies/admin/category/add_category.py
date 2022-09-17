@@ -1,14 +1,14 @@
-from back_end.Models.brand import Brand
+from typing import Optional
 from back_end.database.connection import cursor, connection
-from fastapi import Depends, UploadFiles, Files
+from fastapi import Depends, UploadFile, File
 from back_end.dependencies.login import UserLogin,token_auth_scheme
 
 
 class AdminCategories(UserLogin):
       
-    def  add_brand(self, name: str, image_name : UploadFiles = Files(...), parent_id: Optional[str] = 0 , token: str = Depends(token_auth_scheme)):
+    def  add_brand(self, name: str, image_name : UploadFile = File(...), parent_id: Optional[str] = 0 , token: str = Depends(token_auth_scheme)):
         
-        user = AdminBrand._get_user(token)
+        user = AdminCategories._get_user(token)
 
         if user[2] == 1:
             
@@ -22,7 +22,7 @@ class AdminCategories(UserLogin):
         return "Could Not Valid Credentials"
         
     def view_category(self,id: int, token: str = Depends(token_auth_scheme)):
-        user = AdminBrand._get_user(token)
+        user = AdminCategories._get_user(token)
 
         if user[2] == 1:
             query = """SELECT * FROM category WHERE id = %s"""
@@ -34,8 +34,8 @@ class AdminCategories(UserLogin):
 
         return {"data":"Could Not Valid Credentials"}
 
-    def change_category(self,id: int, name: str, image_name : UploadFiles = Files(...), parent_id: Optional[str] = 0 , token: str = Depends(token_auth_scheme)):
-        user = AdminBrand._get_user(token)
+    def change_category(self,id: int, name: str, image_name : UploadFile = File(...), parent_id: Optional[str] = 0 , token: str = Depends(token_auth_scheme)):
+        user = AdminCategories._get_user(token)
         
 
         if user[2] == 1:
