@@ -16,3 +16,8 @@ class ProductImage(BaseModel):
 
 class ProductDetail(BaseModel):
     detail: dict
+
+class ProductAttribute(BaseModel):
+    attribute_name: str
+    attribute_value: str
+    product_id: int

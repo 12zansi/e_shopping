@@ -2,7 +2,7 @@ import datetime
 from sqlalchemy import Column,String,ForeignKey,Integer,DateTime
 from back_end.database.connection2 import Base
 
-class TBReview(Base):
+class TBReviews(Base):
     __tablename__ = 'reviews'
     
     __table_args__ = {

@@ -1,7 +1,7 @@
 from sqlalchemy import Column,String,ForeignKey,Integer
 from back_end.database.connection2 import Base
 
-class TBBankAccount(Base):
+class TBBankAccounts(Base):
     __tablename__ = 'bank_accounts'
     
     __table_args__ = {

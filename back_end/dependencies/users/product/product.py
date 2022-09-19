@@ -1,5 +1,5 @@
 from back_end.database.connection import cursor
-from back_end.database.mysql.product import TBProduct
+# from back_end.database.mysql.product import TBProduct
 
 class UserProduct:
 
@@ -14,15 +14,15 @@ class UserProduct:
         cursor.execute(query,(q, q, q))
         result = cursor.fetchall()
         data_list = []
-        for data in result:
-            product = TBProduct()
-            product.id = data[0]
-            product.name = data[1]
-            product.mrp = data[3]
-            product.price = data[2]
-            product.category_name = data[5]
-            product.brand_name = data[6]
-            product.return_policy_in_days = data[4]
-            data_list.append(product)
+        # for data in result:
+        #     product = TBProduct()
+        #     product.id = data[0]
+        #     product.name = data[1]
+        #     product.mrp = data[3]
+        #     product.price = data[2]
+        #     product.category_name = data[5]
+        #     product.brand_name = data[6]
+        #     product.return_policy_in_days = data[4]
+        #     data_list.append(product)
         return data_list
 

@@ -1,7 +1,7 @@
 from sqlalchemy import Column,Integer,ForeignKey, String
 from back_end.database.connection2 import Base
 
-class TBPOrderItem(Base):
+class TBPOrderItems(Base):
       
       __tablename__ = 'order_items'
       __table_args__ = {

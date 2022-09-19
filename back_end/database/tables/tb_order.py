@@ -3,7 +3,7 @@ from sqlalchemy import Column,Integer,String,DateTime,ForeignKey
 from back_end.database.connection2 import Base
 
 
-class TBPlaceOrder(Base):
+class TBPlaceOrders(Base):
       
       __tablename__ = 'orders'
       __table_args__ = {

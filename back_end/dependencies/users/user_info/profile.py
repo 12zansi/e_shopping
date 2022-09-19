@@ -1,38 +1,25 @@
-from jose import jwt,JWTError
-from back_end.database.connection import cursor
-from fastapi import Depends,HTTPException
-from back_end.database.mysql.profile import TBUser
+from fastapi import Depends
+from back_end.database.mysql.profile import TBUserProfile
+from back_end.database.tables.tb_users import TBUsers
 from back_end.dependencies.login import UserLogin,token_auth_scheme
-
+from back_end.database.session import start_session
+from requests import Session
 
 
 class UserProfile(UserLogin):
+    def __init__(self,db: Session = Depends(start_session)):
+      self.db = db   
+
+    def get_profile(self, token:str = Depends(token_auth_scheme)):
     
-    def get_profile(self,token:str = Depends(token_auth_scheme)):
-    
-        try:
+        user = UserProfile._get_user(token)
 
-            payload = jwt.decode(token.credentials, UserProfile._JWT_SECRET, algorithms=['HS256'])
-            username: str = payload.get("sub")
-            id: str = payload.get("id")
-
-
-        except jwt.ExpiredSignatureError:
-           raise HTTPException(status_code=403, detail="token has been expired")
-        
-        except JWTError:
-           raise HTTPException(status_code=401, detail="Could Not Valid Credentials")
-        
-        query = "SELECT id,name,email, is_admin FROM users WHERE name = %s"
-        cursor.execute(query, (username,))
-        
-        result = cursor.fetchone()
-
-        data = TBUser()
-        data.id = result[0]
-        data.name = result[1]
-        data.email = result[2]
-        data.is_admin = result[3]
-    
-        return data
+        query = self.db.query(TBUsers.id, TBUsers.name, TBUsers.email, TBUsers.is_admin).filter(TBUsers.id == user[1]).first()
+        result = TBUserProfile()
+        result.id = query[0]
+        result.name = query[1]
+        result.email = query[2]
+        result.is_admin = query[3]
+       
+        return result
     

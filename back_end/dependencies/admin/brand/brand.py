@@ -1,50 +1,65 @@
 from back_end.Models.brand import Brand
 from back_end.database.connection import cursor, connection
 from fastapi import Depends
-from back_end.dependencies.login import UserLogin,token_auth_scheme
+from back_end.database.session import start_session
+from requests import Session
+from back_end.database.tables.tb_brand import TBBrands
+from back_end.dependencies.login import UserLogin, token_auth_scheme
 
 
 class AdminBrands(UserLogin):
       
+    def __init__(self, db: Session = Depends(start_session)):
+        self.db = db
+
+    def _add_in_table(self, add_new_data):
+        self.db.add(add_new_data)
+        self.db.commit()
+        self.db.refresh(add_new_data)
+
+        return add_new_data
+
     def  add_brand(self, brand: Brand , token: str = Depends(token_auth_scheme)):
         
         user = AdminBrands._get_user(token)
 
         if user[2] == 1:
+            query  = self.db.query(TBBrands).filter(TBBrands.name == brand.name).first()
+    
+            if not query:
+                query = TBBrands(name = brand.name)
             
-            query = """INSERT INTO brand(name) VALUES (%s)"""
-            value = (brand.name)
-            cursor.execute(query, value)
-            connection.commit()
+                AdminBrands._add_in_table(self, query)
+                return { "data" : query }
 
-            return "Brand add successfully"
+            return {"message":"Brand already Exists"}
+          
+        return {"message":"Could Not Valid Credentials"}
 
-        return "Could Not Valid Credentials"
+        
         
     def get_brand(self,id: int, token: str = Depends(token_auth_scheme)):
         user = AdminBrands._get_user(token)
 
         if user[2] == 1:
-            query = """SELECT * FROM brand WHERE id = %s"""
           
-            cursor.execute(query, (id,))
-            result = cursor.fetchone()
+                query = self.db.query(TBBrands).filter(
+                        TBBrands.id == id).first()
 
-            return {"data":result,"success":True}
+                return {"data": query,"success":True}
 
-        return {"data":"Could Not Valid Credentials"}
+        return {"message":"Could Not Valid Credentials"}
 
-    def update_brand(self,id: int, brand: Brand , token: str = Depends(token_auth_scheme)):
+
+    def change_brand(self,id: int, brand: Brand , token: str = Depends(token_auth_scheme)):
         user = AdminBrands._get_user(token)
 
         if user[2] == 1:
-            
-            query = """UPDATE  brand SET name = %s WHERE id = %s"""
-            value = (brand.name, id)
-            cursor.execute(query, value)
-            connection.commit()
+             
+            self.db.query(TBBrands).filter(TBBrands.id == id).update({TBBrands.name: brand.name})
 
-            return "Brand Update successfully"
+            self.db.commit()
+            return {"detail":"Brand No "+ str(id) +" Updated successfully"}
 
-        return "Could Not Valid Credentials"
+        return {"message":"Could Not Valid Credentials"}
      

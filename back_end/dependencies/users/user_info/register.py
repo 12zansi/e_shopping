@@ -1,10 +1,16 @@
 from passlib.context import CryptContext
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
 import random
 from back_end.Models.register import Register, Verification
 from email_validator import validate_email, EmailNotValidError
 from back_end.database.connection import cursor, connection
 from fastapi_mail import FastMail, MessageSchema,ConnectionConfig
+from back_end.database.session import start_session
+from requests import Session
+from sqlalchemy import and_
+from back_end.database.tables.tb_cart import TBCarts
+
+from back_end.database.tables.tb_users import TBUsers
 
 conf = ConnectionConfig(
       MAIL_USERNAME = "zansiviradiya2002@gmail.com",
@@ -21,42 +27,46 @@ conf = ConnectionConfig(
 
 class UsersRegister:
     pwd_context = CryptContext(schemes = ["bcrypt"], deprecated = "auto")
+    def __init__(self,db: Session = Depends(start_session)):
+      self.db = db   
+
+    def _add_in_table(self, add_new_data):
+        self.db.add(add_new_data)
+        self.db.commit()
+        self.db.refresh(add_new_data)
+        
+        return add_new_data
 
     async def register(self, user:Register):
-        # try:
-        #  valid = validate_email(email = user.email)
-        #  email = valid.email
-        # except EmailNotValidError:
-        #   raise HTTPException(
-        #     status_code=404, 
-        #     detail="please enter a valid email")
+        try:
+         valid = validate_email(email = user.email)
+         email = valid.email
+        except EmailNotValidError:
+          raise HTTPException(
+            status_code=404, 
+            detail="please enter a valid email")
 
-        # db_user = "select * from users where name = %s or email = %s"
-        # cursor.execute(db_user, (user.name,email))
-        # result = cursor.fetchone()
-  
-        # if result:
-        #   raise HTTPException(status_code=400, detail="username or email already exists")
         
-        otp = random.randint(100000,999999)
+        query = self.db.query(TBUsers).filter(TBUsers.name == user.name or TBUsers.email == user.email).first()
+        if query:
+          raise HTTPException(status_code=400, detail="username or email already exists")
         
-        # query = "insert into users (name,email,password,otp) values(%s, %s, %s, %s)"
+        otp_no = random.randint(100000,999999)
+        hashed_password = UsersRegister.pwd_context.hash(user.password)
+        new_user_query = TBUsers(name = user.name, 
+           email = email,
+           password = hashed_password, 
+           otp = otp_no)
 
-        # hashed_password = UsersRegister.pwd_context.hash(user.password)
-        # val = (user.name, email, hashed_password, otp)
+        new_user = UsersRegister._add_in_table(self,new_user_query)
 
-        # cursor.execute(query, val)
-        # connection.commit()
-
-        # user_id = cursor.lastrowid
-        # query1 = "insert into cart (user_id) values (%s)"
-        # cursor.execute(query1, (user_id, ))
-        # connection.commit()
+        cart_query = TBCarts(user_id = new_user.id)
+        UsersRegister._add_in_table(self,cart_query)
         
         message = MessageSchema(
          subject="Fastapi-Mail module",
          recipients = [user.email],
-         body = "verify your account otp no: " + str(otp),
+         body = "verify your account otp no: " + str(otp_no),
         )
 
         fm = FastMail(conf)
@@ -67,14 +77,15 @@ class UsersRegister:
         
 
     def verify_otp(self,verification:Verification):
-      query = "SELECT * FROM users WHERE email = %s and otp = %s"
-      cursor.execute(query, (verification.email,verification.otp ))
-      result = cursor.fetchone()
-      if result:
-         query = "UPDATE users SET otp = 0 WHERE email = %s "
-
-         cursor.execute(query, (verification.email, ))
-         connection.commit()
+      query = self.db.query(TBUsers).filter(and_(TBUsers.email == verification.email, TBUsers.otp == verification.otp)).first()
+  
+     
+      if query:
+         update_query = self.db.query(TBUsers).filter(TBUsers.email == verification.email)
+           
+         update_query.update({TBUsers.otp : 0 })
+         self.db.commit()  
+        
          return {"data":"You are successfully registered"}
 
       return {"data":"otp is incorrect"}

@@ -3,7 +3,7 @@ from sqlalchemy import Column,Integer,String
 from back_end.database.connection2 import Base
 
 
-class TBUser(Base):
+class TBUsers(Base):
     __tablename__ = 'users'
     __table_args__ = {
         'mysql_engine': 'InnoDB'

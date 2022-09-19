@@ -1,4 +1,4 @@
 
-class TBbrand:
-     id: int
-     name: str
+# class TBbrand:
+#      id: int
+#      name: str

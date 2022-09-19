@@ -4,7 +4,7 @@ from fastapi import UploadFile,Form, File, APIRouter, Depends, Query
 from back_end.Models.brand import Brand
 from back_end.Models.cart import OrderItem
 from back_end.Models.login import ForgotPassword, Login
-from back_end.Models.product import Product, ProductDetail
+from back_end.Models.product import Product, ProductAttribute, ProductDetail
 from back_end.Models.address import Address
 from back_end.Models.orders import Orders
 from back_end.Models.product_return import ProductReturn
@@ -13,6 +13,7 @@ from back_end.Models.bank_account import BankAccount
 from back_end.Models.register import Register, Verification
 from back_end.Models.review import Review
 from back_end.Models.status import Status
+from back_end.database.connection2 import Base,connection
 from back_end.dependencies.admin.brand.brand import AdminBrands
 from back_end.dependencies.admin.category.add_category import AdminCategories
 from back_end.dependencies.admin.orders.get_orders import AdminOrders
@@ -40,7 +41,7 @@ token_auth_scheme = HTTPBearer()
 
 router = APIRouter(prefix="/api/v1")
 
-# pcjxjktxygriwiev
+Base.metadata.create_all(bind = connection)
 
 @router.post('/auth/register', tags = ['auth'])
 async def register(user:Register, user_register: UsersRegister = Depends(UsersRegister)):
@@ -63,14 +64,14 @@ def login(user:Login, user_login: UserLogin = Depends(UserLogin)):
 def  get_all_report(token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
-@router.get('/admin/products/{search}', tags = ['admin'])
+@router.get('/admin/product/{search}', tags = ['admin'])
 def  get_all_detail(search: ProductSearch, token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
 @router.post('/admin/brands', tags = ['admin'])
 def add_brand(brand:Brand, token: str = Depends(token_auth_scheme),admin_brand: AdminBrands = Depends(AdminBrands)):
     data = admin_brand.add_brand(brand, token)
-    return {"data":data }
+    return data 
 
 @router.get('/admin/brands/{id}', tags = ['admin'])
 def get_brand(id:int,token: str = Depends(token_auth_scheme),admin_brand: AdminBrands = Depends(AdminBrands)):
@@ -79,7 +80,7 @@ def get_brand(id:int,token: str = Depends(token_auth_scheme),admin_brand: AdminB
 
 @router.put('/admin/brands/{id}', tags = ['admin'])
 def update_brand(id:int, brand:Brand,token: str = Depends(token_auth_scheme),admin_brand: AdminBrands = Depends(AdminBrands)):
-    data = admin_brand.get_brand(id, brand, token)
+    data = admin_brand.change_brand(id, brand, token)
     return data 
     
 
@@ -98,7 +99,7 @@ def get_category(id:int,token: str = Depends(token_auth_scheme),admin_category: 
     return data
 
 @router.put('/admin/categories/{id}', tags = ['admin'])
-def update_category(id:int,name:str = Form(...),image:UploadFile = File(...) ,parent_id:str = Form(default=0),token: str = Depends(token_auth_scheme),admin_category: AdminCategories = Depends(AdminCategories)):
+def update_category(id:int,name:str = Form(...),image:UploadFile = File(default = None) ,parent_id:str = Form(default=0),token: str = Depends(token_auth_scheme),admin_category: AdminCategories = Depends(AdminCategories)):
     data = admin_category.change_category(id, name, image, parent_id, token)
     return data
 
@@ -109,27 +110,32 @@ def remove_category(id:int, token: str = Depends(token_auth_scheme), admin_categ
 
 @router.post('/admin/products', tags = ['admin'])
 def add_product(product:Product, token: str = Depends(token_auth_scheme), admin_product: AdminProducts = Depends(AdminProducts)):
-    data = admin_product.publish_product(id, token)
+    data = admin_product.publish_product(product, token)
+    return data
+
+@router.get('/admin/products/{id}', tags = ['admin'])
+def get_product(id: int, token: str = Depends(token_auth_scheme), admin_product: AdminProducts = Depends(AdminProducts)):
+    data = admin_product.view_product(id, token)
     return data
 
 @router.put('/admin/products/{id}', tags = ['admin'])
 def update_product(id:int, product:Product, token: str = Depends(token_auth_scheme), admin_product: AdminProducts = Depends(AdminProducts)):
-    data = admin_product.change_product(id, token)
+    data = admin_product.change_product(id,product, token)
     return data
 
 @router.post('/admin/products/{id}/images', tags = ['admin'])
 def add_images(id: int, image_name: list[UploadFile] = File(...), token: str = Depends(token_auth_scheme), admin_product_images: AdminProductImages = Depends(AdminProductImages)):
-    data = admin_product_images.add_images(id, image_name, token)
+    data = admin_product_images.upload_product_images(id, image_name, token)
     return data
 
 @router.get('/admin/products/images/{id}', tags = ['admin'])
 def get_images(id: int, token: str = Depends(token_auth_scheme), admin_product_images: AdminProductImages = Depends(AdminProductImages)):
-    data = admin_product_images.view_images(id, token)
+    data = admin_product_images.view_product_images(id, token)
     return data
 
 @router.put('/admin/products/images/{id}', tags = ['admin'])
 def update_product_images(id:int, image: UploadFile = File(...),token: str = Depends(token_auth_scheme), admin_product_images: AdminProductImages = Depends(AdminProductImages)):
-    data = admin_product_images.change_images(id, image, token)
+    data = admin_product_images.change_product_images(id, image, token)
     return data
 
 @router.delete('/admin/products/images/{id}', tags = ['admin'])
@@ -138,7 +144,7 @@ def remove_product_images(id:int, token: str = Depends(token_auth_scheme)):
 
 @router.post('/admin/products/{id}/attributes', tags = ['admin'])
 def add_attribute(id:int, detail:ProductDetail, token: str = Depends(token_auth_scheme), admin_product_attribute: AdminProductAttributes = Depends(AdminProductAttributes) ):
-    data = admin_product_attribute.add_attribute(id, detail, token)
+    data = admin_product_attribute.add_product_attribute(id, detail, token)
     return data
 
 @router.delete('/admin/products/attributes/{id}', tags = ['admin'])
@@ -146,13 +152,13 @@ def remove_attribute(id:int, token: str = Depends(token_auth_scheme)):
     return { "success": True }
 
 @router.put('/admin/products/attributes/{id}', tags = ['admin'])
-def update_product_attribute(id:int, detail:ProductDetail,token: str = Depends(token_auth_scheme), admin_product_attribute: AdminProductAttributes = Depends(AdminProductAttributes)):
-    data = admin_product_attribute.change_attribute(id, detail, token)
+def update_product_attribute(id:int, detail:ProductAttribute,token: str = Depends(token_auth_scheme), admin_product_attribute: AdminProductAttributes = Depends(AdminProductAttributes)):
+    data = admin_product_attribute.change_product_attribute(id, detail, token)
     return data
 
 @router.get('/admin/products/attributes/{id}', tags = ['admin'])
 def get_product_attribute(id:int, token: str = Depends(token_auth_scheme), admin_product_attribute: AdminProductAttributes = Depends(AdminProductAttributes)):
-    data = admin_product_attribute.view_attribute(id, token)
+    data = admin_product_attribute.view_product_attribute(id, token)
     return data
 
 @router.get('/admin/products/{id}/detail', tags = ['admin'])
@@ -183,17 +189,17 @@ def update_return_status(id:int, status: Status , token: str = Depends(token_aut
 @router.post('/address', tags = ['addressbook'])
 def add_address(address: Address,token: str = Depends(token_auth_scheme),addressbook: AddressBook = Depends(AddressBook)):
     data = addressbook.add_address(address, token)
-    return { "data": data,"success": True }
+    return data
 
 @router.put('/address/{id}', tags = ['addressbook'])
 def update_address(id:int,address: Address,token: str = Depends(token_auth_scheme), addressbook: AddressBook = Depends(AddressBook)):
     data = addressbook.update_address(id,address,token)
-    return { "data": data,"success": True }
+    return  data
 
 @router.get('/address/{id}', tags = ['addressbook'])
 def get_address(id:int, token: str = Depends(token_auth_scheme), addressbook: AddressBook = Depends(AddressBook)):
-    data = addressbook.get_address(token)
-    return { "data": data, "success": True }
+    data = addressbook.get_address(id,token)
+    return  data
 
 @router.delete('/address/{id}', tags = ['addressbook'])
 def remove_address(id:int,token: str = Depends(token_auth_scheme), addressbook: AddressBook = Depends(AddressBook)):

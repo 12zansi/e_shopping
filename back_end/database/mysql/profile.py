@@ -1,6 +1,6 @@
 
 
-class TBUser:
+class TBUserProfile:
     id: int
     name: str
     email: str
