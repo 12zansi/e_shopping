@@ -1,14 +1,10 @@
-from email.policy import default
-from typing import Optional
 import random
-from back_end.database.connection import cursor, connection
 from fastapi import Depends, UploadFile, File, Form
 from back_end.database.tables.tb_category import TBCategories
 from back_end.dependencies.add_into_table import AddIntoTable
 from back_end.dependencies.login import UserLogin,token_auth_scheme
 from back_end.database.session import start_session
 from requests import Session
-import os  
 
 class AdminCategories(UserLogin, AddIntoTable):
     
@@ -52,11 +48,11 @@ class AdminCategories(UserLogin, AddIntoTable):
 
                 AdminCategories._add_in_table(self, query)
 
-                return {"data":query,"success":True}
+                return {"data":query, "success":True}
 
-            return {"message":"category Already Added"}
+            return {"message": "category Already Exists"}
 
-        return "Could Not Valid Credentials"
+        return {"message": "Could Not Valid Credentials"}
         
     def view_category(self,id: int, token: str = Depends(token_auth_scheme)):
         user = AdminCategories._get_user(token)
@@ -67,12 +63,11 @@ class AdminCategories(UserLogin, AddIntoTable):
 
             return {"data": query,"success":True}
 
-        return {"data":"Could Not Valid Credentials"}
+        return {"message": "Could Not Valid Credentials"}
 
     def change_category(self,id: int, name: str  = Form(...), image_name : UploadFile = File(default = None), parent_id: str = Form(default = 0) , token: str = Depends(token_auth_scheme)):
         user = AdminCategories._get_user(token)
         
-
         if user[2] == 1:
             query = self.db.query(TBCategories).filter(TBCategories.id == id)\
                 .update({ TBCategories.name : name, TBCategories.parent_id : parent_id })
@@ -88,4 +83,18 @@ class AdminCategories(UserLogin, AddIntoTable):
     
             return { "message": "category doesn't exist" }
 
+        return { "message": "Could Not Valid Credentials" }
+
+    def delete_category(self,id: int, token: str = Depends(token_auth_scheme)):
+        user = AdminCategories._get_user(token)
+        
+        if user[2] == 1:
+            query  = self.db.query(TBCategories).filter(TBCategories.id == id)\
+             .update({TBCategories.is_active : 0})
+            self.db.commit()
+            if query :
+               return  { "message": "category successfully removed" }
+
+            return { "message": "category doesn't exist" }
+        
         return { "message": "Could Not Valid Credentials" }

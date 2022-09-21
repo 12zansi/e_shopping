@@ -1,5 +1,21 @@
-from back_end.Models.favorite_list import FavoriteList
-from back_end.database.connection import cursor, connection
-from fastapi import Depends
-from back_end.dependencies.login import UserLogin,token_auth_scheme
 
+from fastapi import Depends
+from requests import Session
+from back_end.database.session import start_session
+from back_end.database.tables.tb_brand import TBBrands
+
+
+class UserBrand:
+    def __init__(self,db: Session = Depends(start_session)):
+      self.db = db   
+
+    def get_brand(self, id: int):
+
+        query = self.db.query(TBBrands).filter(
+                TBBrands.id == id).first()
+
+        return {"data": query,"success": True}
+
+
+
+    

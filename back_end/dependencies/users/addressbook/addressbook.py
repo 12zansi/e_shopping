@@ -1,13 +1,13 @@
-from fastapi import Depends
 from back_end.Models.address import Address
-from back_end.database.connection import cursor, connection
+from back_end.Models.status import Status
 from back_end.database.tables.tb_address import TBAddress
+from back_end.database.tables.tb_order import TBPlaceOrders
+from back_end.database.tables.tb_status import TBStatus
 from back_end.dependencies.login import UserLogin,token_auth_scheme
 from back_end.database.session import start_session
 from fastapi import Depends
-from sqlalchemy import and_, or_, not_
+from sqlalchemy import and_
 from requests import Session
-
 
 class AddressBook(UserLogin):
     
@@ -27,7 +27,7 @@ class AddressBook(UserLogin):
         query  = self.db.query(TBAddress).filter(TBAddress.address_line1 == address.address_line1 and TBAddress.user_id == user[1]).first()
     
         if query:
-            return {"message":"address already added"}
+            return {"message": "address already added"}
 
         query2 = TBAddress(
             receiver_name = address.receiver_name,
@@ -42,16 +42,16 @@ class AddressBook(UserLogin):
             )
         AddressBook._add_in_table(self,query2)
 
-        return {"data":query2,"success": True }
+        return {"data":query2, "success": True }
 
     def get_address(self, id:int, token = Depends(token_auth_scheme)):
         user = AddressBook._get_user(token)
     
         query = self.db.query(TBAddress).filter(and_(TBAddress.id == id, TBAddress.user_id == user[1])).all()
         if not query:
-           return {"data":query}
+           return {"data": query}
         
-        return {"data":query, "success":True}
+        return {"data":query, "success": True}
         
     def update_address(self,id:int,address:Address, token = Depends(token_auth_scheme)):
         user = AddressBook._get_user(token)
@@ -76,17 +76,16 @@ class AddressBook(UserLogin):
 
     def delete_address(self,id:int, token = Depends(token_auth_scheme)):
         user = AddressBook._get_user(token)
-        print(user[1])
         
         query = self.db.query(TBAddress).filter(and_(TBAddress.user_id == user[1], TBAddress.id == id))
         result = query.delete()
         self.db.commit()
 
         if not result:
-            return {"message":"address can't removed"}
+            return {"message": "address can't removed"}
         
         return {"message":"address removed successfully"}
 
-
+   
 
 

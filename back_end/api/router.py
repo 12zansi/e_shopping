@@ -14,30 +14,30 @@ from back_end.Models.register import Register, Verification
 from back_end.Models.review import Review
 from back_end.Models.status import Status
 from back_end.database.connection2 import Base,connection
-from back_end.dependencies.admin.brand.brand import AdminBrands
-from back_end.dependencies.admin.category.add_category import AdminCategories
+from back_end.dependencies.admin.brands.brand import AdminBrands
+from back_end.dependencies.admin.categories.category import AdminCategories
+from back_end.dependencies.admin.dashboard import AdminDashBoad
 from back_end.dependencies.admin.orders.get_orders import AdminOrders
-from back_end.dependencies.admin.product.add_product import AdminProducts
-from back_end.dependencies.admin.product.product_attributes import AdminProductAttributes
-from back_end.dependencies.admin.product.product_images import AdminProductImages
+from back_end.dependencies.admin.products.product import AdminProducts
+from back_end.dependencies.admin.products.product_attributes import AdminProductAttributes
+from back_end.dependencies.admin.products.product_images import AdminProductImages
 from back_end.dependencies.admin.return_product.get_return_product import AdminReturns
 from back_end.dependencies.login import UserLogin
 from back_end.dependencies.users.addressbook.addressbook import AddressBook
+from back_end.dependencies.users.bank_account.bank_account import UserBankAccount
+from back_end.dependencies.users.brand.brand import UserBrand
+from back_end.dependencies.users.category.category import UserCategory
+from back_end.dependencies.users.checkout.cart import UserCart
+from back_end.dependencies.users.checkout.orders import UserOrder
 from back_end.dependencies.users.favorite_list.favoritelist import UserFavorite
 from back_end.dependencies.users.product.product import UserProduct
 from back_end.dependencies.users.user_info.forgot_password import UserForgotPassword
 from back_end.dependencies.users.user_info.profile import UserProfile
 from back_end.dependencies.users.user_info.register import UsersRegister
-from back_end.enum.order_status import OrderStatus
-from back_end.enum.return_status import ReturnStatus
 from back_end.enum.search import ProductSearch
-
 from fastapi.security import HTTPBearer 
 
-
-
 token_auth_scheme = HTTPBearer()
-
 
 router = APIRouter(prefix="/api/v1")
 
@@ -61,8 +61,9 @@ def login(user:Login, user_login: UserLogin = Depends(UserLogin)):
    return { "token_detail":data,"success": True }
 
 @router.get('/admin/dashboard', tags = ['admin'])
-def  get_all_report(token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def  get_all_report(token: str = Depends(token_auth_scheme), admin_dashboard: AdminDashBoad = Depends(AdminDashBoad)):
+    data = admin_dashboard.count_records(token)
+    return { "data": data, "success": True }
 
 @router.get('/admin/product/{search}', tags = ['admin'])
 def  get_all_detail(search: ProductSearch, token: str = Depends(token_auth_scheme)):
@@ -85,8 +86,9 @@ def update_brand(id:int, brand:Brand,token: str = Depends(token_auth_scheme),adm
     
 
 @router.delete('/admin/brands/{id}', tags = ['admin'])
-def remove_brand(id:int,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def remove_brand(id:int,token: str = Depends(token_auth_scheme),admin_brand: AdminBrands = Depends(AdminBrands)):
+    data = admin_brand.delete_brand(id, token)
+    return data 
 
 @router.post('/admin/categories', tags = ['admin'])
 def add_category(name: str = Form(...),image: UploadFile = File(...) ,parent_id: str = Form(default=0),token: str = Depends(token_auth_scheme),admin_category: AdminCategories = Depends(AdminCategories)):
@@ -123,6 +125,11 @@ def update_product(id:int, product:Product, token: str = Depends(token_auth_sche
     data = admin_product.change_product(id,product, token)
     return data
 
+@router.delete('/admin/products/{id}', tags = ['admin'])
+def remove_product(id:int,token: str = Depends(token_auth_scheme),admin_product: AdminProducts = Depends(AdminProducts)):
+    data = admin_product.delete_product(id, token)
+    return data 
+
 @router.post('/admin/products/{id}/images', tags = ['admin'])
 def add_images(id: int, image_name: list[UploadFile] = File(...), token: str = Depends(token_auth_scheme), admin_product_images: AdminProductImages = Depends(AdminProductImages)):
     data = admin_product_images.upload_product_images(id, image_name, token)
@@ -140,6 +147,7 @@ def update_product_images(id:int, image: UploadFile = File(...),token: str = Dep
 
 @router.delete('/admin/products/images/{id}', tags = ['admin'])
 def remove_product_images(id:int, token: str = Depends(token_auth_scheme)):
+
     return { "success": True }
 
 @router.post('/admin/products/{id}/attributes', tags = ['admin'])
@@ -173,7 +181,7 @@ def get_orders(start_date:date,end_date:date,status : Optional[str] = None , tok
 
 @router.put('/admin/orders/{id}', tags = ['admin'])
 def update_order_status(id:int, status: Status , token: str = Depends(token_auth_scheme), orders : AdminOrders = Depends(AdminOrders)):
-    data = orders.change_orders_status(id, status, token)
+    data = orders.change_order_status(id, status, token)
     return data
 
 @router.get('/admin/returns', tags = ['admin'])
@@ -208,8 +216,13 @@ def remove_address(id:int,token: str = Depends(token_auth_scheme), addressbook: 
 
 
 @router.post('/users/forgotpassword', tags = ['users'])
-def forgot_password(user: ForgotPassword,user_password:UserForgotPassword = Depends(UserForgotPassword)):
-    data = user_password.change_password(user)
+async def forgot_password(user: ForgotPassword,user_password:UserForgotPassword = Depends(UserForgotPassword)):
+    data = await user_password.change_password(user)
+    return data
+
+@router.post('/users/verification', tags = ['users'])
+def verify_change_password_otp(verification: Verification,user_password:UserForgotPassword = Depends(UserForgotPassword)):
+    data = user_password.verify_otp(verification)
     return data
 
 @router.get('/profile', tags = ['users'])
@@ -221,7 +234,7 @@ def get_user_profile(token: str = Depends(token_auth_scheme), profile: UserProfi
 @router.post('/favoritelist', tags = ['favoritelist'])
 def add_into_favorite_list(favorite_list:FavoriteList,token: str = Depends(token_auth_scheme), user_favorite: UserFavorite = Depends(UserFavorite)):
     data = user_favorite.add_into_favorite_list(favorite_list,token)
-    return { "data": data }
+    return  data 
 
 @router.get('/favoritelist', tags = ['favoritelist'])
 def view_favorite_products(token: str = Depends(token_auth_scheme), user_favorite: UserFavorite = Depends(UserFavorite)):
@@ -231,33 +244,38 @@ def view_favorite_products(token: str = Depends(token_auth_scheme), user_favorit
 @router.delete('/favoritelist/{id}', tags = ['favoritelist'])
 def remove_from_favorite_list(id:int,token: str = Depends(token_auth_scheme), user_favorite: UserFavorite = Depends(UserFavorite)):
     data = user_favorite.delete_into_favorite_list(id,token)
-    return { "data": data }
+    return  data 
 
 
 @router.post('/bank/accounts', tags = ['accounts'])
-def add_bank_account_detail(bank_account: BankAccount,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def add_bank_account_detail(account: BankAccount,token: str = Depends(token_auth_scheme), bank: UserBankAccount = Depends(UserBankAccount)):
+    data = bank.add_bank_account(account, token)
+    return data
 
 @router.put('/bank/accounts/{id}', tags = ['accounts'])
-def update_bank_account_detail(id:int,bank_account:BankAccount,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def update_bank_account_detail(id:int, bank_account:BankAccount,token: str = Depends(token_auth_scheme), bank: UserBankAccount = Depends(UserBankAccount)):
+    data = bank.change_bank_account(id, bank_account, token)
+    return data
 
 @router.get('/bank/accounts/{id}', tags = ['accounts'])
-def view_bank_account_detail(id:int,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def view_bank_account_detail(id:int,token: str = Depends(token_auth_scheme), bank: UserBankAccount = Depends(UserBankAccount)):
+    data = bank.view_bank_account(id, token)
+    return data
 
 @router.get('/categories/{id}', tags = ['categories'])
-def view_category(id : int):
-    return { "success": True }
+def view_category(id : int, user_category: UserCategory = Depends(UserCategory)):
+    data = user_category.get_category(id)
+    return data
 
 @router.get('/categories/{id}/child', tags = ['categories'])
-def view_child_category(id:int):
-    return { "success": True }
+def view_child_category(id:int, user_category: UserCategory = Depends(UserCategory)):
+    data = user_category.get_child_category(id)
+    return data
 
 @router.get('/brands/{id}', tags = ['brands'])
-def view_brand(id:int):
-    return { "success": True }
-
+def view_brand(id:int, user_brand: UserBrand = Depends(UserBrand)):
+    data = user_brand.get_brand(id)
+    return data
 
 @router.get('/products/search', tags = ['products'])
 def view_products(q: str, search: UserProduct = Depends(UserProduct)):
@@ -265,8 +283,9 @@ def view_products(q: str, search: UserProduct = Depends(UserProduct)):
     return { "data":data,"success": True }
 
 @router.get('/products/{id}', tags = ['products'])
-def view_product_detail(id:int):
-    return { "success": True }
+def view_product_detail(id:int, user_product: UserProduct = Depends(UserProduct)):
+    data = user_product.get_product_detail(id)
+    return data
 
 @router.post('/products/{id}/review', tags = ['products'])
 def add_review(id:int, product:Review,token: str = Depends(token_auth_scheme)):
@@ -274,42 +293,48 @@ def add_review(id:int, product:Review,token: str = Depends(token_auth_scheme)):
 
 @router.get('/products/{id}/review', tags = ['products'])
 def get_review(id:int):
-    return { "success": True }
+    return True
 
 @router.post('/carts', tags = ['carts'])
-def add_into_cart(user:OrderItem,token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def add_into_cart(user:OrderItem,token: str = Depends(token_auth_scheme), cart: UserCart = Depends(UserCart)):
+    data = cart.add_in_cart(user,token)
+    return data
 
 @router.get('/carts', tags = ['carts'])
-def view_cart(token: str = Depends(token_auth_scheme)):
-   return { "success": True }
+def view_cart(token: str = Depends(token_auth_scheme), cart: UserCart = Depends(UserCart)):
+   data = cart.get_cart_item(token)
+   return data
 
 @router.put('/carts/{id}', tags = ['carts'])
-def update_quantity(id:int,quantity: int = Query(default = 1, gt = 0, lt = 5),token: str = Depends(token_auth_scheme)):
-  
-    return { "success": True }
+def update_quantity(id:int,quantity: int = Query(default = 1, gt = 0, lt = 5),token: str = Depends(token_auth_scheme), cart: UserCart = Depends(UserCart)):
+    data = cart.update_cart_item(id, quantity, token)
+    return data
     
 
 @router.delete('/carts/{id}', tags = ['carts'])
-def remove_item(id: Optional[int] = None, token: str = Depends(token_auth_scheme)):
-    return { "success": True }
+def remove_item(id: Optional[int] = None, token: str = Depends(token_auth_scheme), cart: UserCart = Depends(UserCart)):
+    data = cart.delete_cart_item(id, token)
+    return data
 
 
 @router.post('/orders', tags = ['orders'])
-def place_an_order(user:Orders, token: str = Depends(token_auth_scheme)):
-   return {"success": True}
+def place_an_order(user:Orders, token: str = Depends(token_auth_scheme), user_order : UserOrder = Depends(UserOrder)):
+   data = user_order.add_in_place_order(user,token)
+   return data
 
 @router.post('/orders/{id}/cancel', tags = ['orders'])
 def cancel_order(id:int,token: str = Depends(token_auth_scheme)):
     return {"success": True}
 
 @router.get('/orders/{id}', tags = ['orders'])
-def get_order_detail(id:int , token: str = Depends(token_auth_scheme)):
-    return {"success": True}
+def get_order_detail(id:int , token: str = Depends(token_auth_scheme), user_order : UserOrder = Depends(UserOrder)):
+    data = user_order.get_order_detail(id, token)
+    return data
 
 @router.post('/orders/{id}/items/{item_id}/return', tags = ['orders'])
 def create_return_request(id:int,item_id:int,product:ProductReturn,token: str = Depends(token_auth_scheme)):
     return { "success": True }
+
 
 
 

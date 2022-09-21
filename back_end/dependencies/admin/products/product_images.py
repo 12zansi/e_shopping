@@ -2,7 +2,7 @@ from fastapi import Depends, UploadFile, File
 import random
 from back_end.database.tables.tb_product import TBProducts
 from back_end.database.tables.tb_product_images import TBProductImages
-from back_end.dependencies.admin.product.add_product import AdminProducts
+from back_end.dependencies.admin.products.product import AdminProducts
 from back_end.dependencies.login import UserLogin, token_auth_scheme
 
 
@@ -46,7 +46,7 @@ class AdminProductImages(AdminProducts, UserLogin):
             self.db.commit()
             return {"message":"Product Images added successfully"}
 
-        return "Could Not Valid Credentials"
+        return {"message":"Could Not Valid Credentials"}
         
     def view_product_images(self,id: int, token: str = Depends(token_auth_scheme)):
         user = AdminProductImages._get_user(token)
@@ -68,10 +68,9 @@ class AdminProductImages(AdminProducts, UserLogin):
             if query:
                 with open(f'images/products/{query.name}', "wb") as buffer:
                     buffer.write(name.file.read())
-
             
-                return {"message": "Product Images Updated successfully"}
+                return { "message": "Product Images Updated successfully" }
 
-            return {"message": "Images doesn't exist"}
+            return { "message": "Images doesn't exist" }
 
-        return {"message":"Could Not Valid Credentials"}
+        return { "message":"Could Not Valid Credentials" }

@@ -3,7 +3,6 @@ from fastapi import HTTPException, Depends
 import random
 from back_end.Models.register import Register, Verification
 from email_validator import validate_email, EmailNotValidError
-from back_end.database.connection import cursor, connection
 from fastapi_mail import FastMail, MessageSchema,ConnectionConfig
 from back_end.database.session import start_session
 from requests import Session
@@ -11,6 +10,7 @@ from sqlalchemy import and_
 from back_end.database.tables.tb_cart import TBCarts
 
 from back_end.database.tables.tb_users import TBUsers
+from back_end.dependencies.add_into_table import AddIntoTable
 
 conf = ConnectionConfig(
       MAIL_USERNAME = "zansiviradiya2002@gmail.com",
@@ -25,7 +25,7 @@ conf = ConnectionConfig(
     )
 
 
-class UsersRegister:
+class UsersRegister(AddIntoTable):
     pwd_context = CryptContext(schemes = ["bcrypt"], deprecated = "auto")
     def __init__(self,db: Session = Depends(start_session)):
       self.db = db   

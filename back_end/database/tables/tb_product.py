@@ -16,7 +16,7 @@ class TBProducts(Base):
     price = Column(Integer)
     brand_id = Column(Integer,ForeignKey("brands.id"))
     thumbnail_id = Column(Integer, default= 0)
-    category_id = Column(Integer)
+    category_id = Column(Integer,ForeignKey("categories.id"))
     return_policy_in_days = Column(Integer)
     user_id = Column(Integer, ForeignKey("users.id"))
     is_active = Column(Integer,default = 1)

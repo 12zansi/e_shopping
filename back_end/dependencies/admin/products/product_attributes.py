@@ -4,10 +4,10 @@ from back_end.database.session import start_session
 from requests import Session
 from fastapi import Depends
 from back_end.database.tables.tb_product_detail import TBProductDetails
-from back_end.dependencies.add_into_table import AddIntoTable
+from back_end.dependencies.admin.products.product import AdminProducts
 from back_end.dependencies.login import UserLogin, token_auth_scheme
 
-class AdminProductAttributes(UserLogin, AddIntoTable):
+class AdminProductAttributes(AdminProducts, UserLogin):
     def __init__(self,db: Session = Depends(start_session)):
       self.db = db   
 
@@ -36,9 +36,9 @@ class AdminProductAttributes(UserLogin, AddIntoTable):
                 AdminProductAttributes._add_in_table(self, query)
                 
                 
-            return {"message": "detail successfully added"}
+            return { "message": "detail successfully added" }
 
-        return {"message":"Could Not Valid Credentials"}
+        return { "message":"Could Not Valid Credentials" }
         
     def view_product_attribute(self,id: int, token: str = Depends(token_auth_scheme)):
         user = AdminProductAttributes._get_user(token)
@@ -47,9 +47,9 @@ class AdminProductAttributes(UserLogin, AddIntoTable):
             
             query = self.db.query(TBProductDetails).filter(TBProductDetails.id == id).first()
             
-            return {"data": query,"success":True}
+            return { "data": query,"success":True }
 
-        return {"data":"Could Not Valid Credentials"}
+        return { "data":"Could Not Valid Credentials" }
 
     def change_product_attribute(self, id:int, attribute: ProductAttribute, token: str = Depends(token_auth_scheme)):
         user = AdminProductAttributes._get_user(token)
@@ -70,4 +70,4 @@ class AdminProductAttributes(UserLogin, AddIntoTable):
 
             return { "message": "product attribute successfully updated" }
            
-        return { "message":"Could Not Valid Credentials" }
+        return { "message": "Could Not Valid Credentials" }

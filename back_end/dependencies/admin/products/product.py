@@ -1,5 +1,7 @@
 from back_end.Models.product import Product
 from back_end.database.tables.tb_product import TBProducts
+from back_end.database.tables.tb_product_detail import TBProductDetails
+from back_end.database.tables.tb_product_images import TBProductImages
 from back_end.dependencies.add_into_table import AddIntoTable
 from back_end.dependencies.login import UserLogin, token_auth_scheme
 from fastapi import Depends
@@ -45,7 +47,7 @@ class AdminProducts(UserLogin,AddIntoTable):
 
                 return {"message":new_product_query}
 
-            return {"message":"Product Already Added"}
+            return {"message":"Product Already Exists"}
 
         return {"message":"Could Not Valid Credentials"}
         
@@ -58,7 +60,7 @@ class AdminProducts(UserLogin,AddIntoTable):
             
             return {"data": query,"success":True}
 
-        return {"data":"Could Not Valid Credentials"}
+        return {"message":"Could Not Valid Credentials"}
 
     def change_product(self, id:int, product:Product, token: str = Depends(token_auth_scheme)):
         user = AdminProducts._get_user(token)
@@ -84,3 +86,29 @@ class AdminProducts(UserLogin,AddIntoTable):
             return { "message": "product successfully updated" }
            
         return { "message":"Could Not Valid Credentials" }
+
+    def delete_product(self,id: int, token: str = Depends(token_auth_scheme)):
+        user = AdminProducts._get_user(token)
+        
+        if user[2] == 1:
+            query  = self.db.query(TBProducts).filter(TBProducts.id == id)
+            result = query.update({TBProducts.is_active : 0})
+            self.db.commit()
+            if result:
+               return  { "message": "product successfully removed" }
+
+            return { "message": "product doesn't exist" }
+        
+        return { "message": "Could Not Valid Credentials" }
+
+    def view_product_detail(self, id:int, token: str = Depends(token_auth_scheme)):
+        user = AdminProducts._get_user(token)
+        
+        if user[2] == 1:
+
+            query = self.db.query(TBProducts,TBProductImages, TBProductDetails)\
+                .join(TBProductImages, TBProductImages.product_id == TBProducts.id)\
+                .join(TBProductDetails, TBProductDetails.product_id == TBProducts.id)\
+                .filter(TBProducts.id == id).all()
+            
+            return {"data": query,"success":True}
