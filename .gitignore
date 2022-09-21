@@ -19,4 +19,4 @@ back_end/dependencies/admin/product/__pycache__
 back_end/dependencies/admin/return_product/__pycache__
 back_end/dependencies/users/product/__pycache__
 back_end/dependencies/users/favorite_list/__pycache__
-
+back_end/status.py
