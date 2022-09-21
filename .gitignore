@@ -9,6 +9,9 @@ back_end/dependencies/users/user_info/__pycache__
 unused.txt
 back_end/database/mysql/__pycache__
 back_end/dependencies/users/addressbook/__pycache__
+back_end/dependencies/users/bank_account/__pycache__
+back_end/dependencies/users/checkout/__pycache__
+back_end/dependencies/admin/__pycache__
 back_end/dependencies/admin/brand/__pycache__
 back_end/dependencies/admin/category/__pycache__
 back_end/dependencies/admin/orders/__pycache__
@@ -16,3 +19,4 @@ back_end/dependencies/admin/product/__pycache__
 back_end/dependencies/admin/return_product/__pycache__
 back_end/dependencies/users/product/__pycache__
 back_end/dependencies/users/favorite_list/__pycache__
+
